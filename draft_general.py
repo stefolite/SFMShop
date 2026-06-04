@@ -1,4 +1,3 @@
-_dict = {1: 1000, 3:500, 2: 250, 4: 80000, 5: 1}
-
-
-print(sorted(_dict.items(), key=lambda x: x[1]))
+x = [[1, 2], [3, 4], [5, 6]]
+for i, j in x:
+    print(i, j)
