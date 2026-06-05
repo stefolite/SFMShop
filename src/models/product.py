@@ -78,5 +78,6 @@ if __name__ == '__main__':
     obj = Product.from_dict(data)
     # print(obj)
     # print(Product.calculate_discount(obj.price, 10))
-    print(obj.calculate_price(PercentDiscount(57)))
+    print(obj.calculate_price(PercentDiscount(57
+                                              )))
     print(obj.calculate_price(FixedDiscount(500)))
