@@ -24,6 +24,29 @@
 
 
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
+
+
+class DiscountStrategy(ABC):
+    @abstractmethod
+    def apply(self, price: float) -> float:
+        pass
+
+
+class PercentDiscount(DiscountStrategy):
+    def __init__(self, percent: float) -> None:
+        self.percent = percent
+
+    def apply(self, price: float) -> float:
+        return price * (1 - self.percent / 100)
+
+
+class FixedDiscount(DiscountStrategy):
+    def __init__(self, amount: float) -> None:
+        self.amount = amount
+
+    def apply(self, price: float) -> float:
+        return max(0, price - self.amount)
 
 
 @dataclass
@@ -46,9 +69,14 @@ class Product:
     def calculate_discount(price, discount_percent):
         return price * (1 - discount_percent / 100)
 
+    def calculate_price(self, discount: DiscountStrategy = None):
+        return discount.apply(self.price) if discount else self.price
+
 
 if __name__ == '__main__':
     data = {"name": "Мышь", "price": 1800, "quantity": 5}
     obj = Product.from_dict(data)
-    print(obj)
-    print(Product.calculate_discount(obj.price, 10))
+    # print(obj)
+    # print(Product.calculate_discount(obj.price, 10))
+    print(obj.calculate_price(PercentDiscount(57)))
+    print(obj.calculate_price(FixedDiscount(500)))
