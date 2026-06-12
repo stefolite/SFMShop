@@ -21,7 +21,7 @@ class DefaultPaymentValidator(PaymentValidator):
     def validate_payment(payment):
         if payment.amount <= 0:
             raise ValueError("Сумма должна быть положительной")
-        if isinstance(payment.payment_method, PaymentMethod):
+        if not isinstance(payment.payment_method, PaymentMethod):
             raise ValueError("Неизвестный метод оплаты")
         return True
 
