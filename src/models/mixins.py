@@ -1,27 +1,17 @@
 import json
 
-
-class ValidatableMixin:
-    def validate(self):
-        return True
-
-    def is_valid(self):
-        try:
-            self.validate()
-            return True
-        except ValueError:
-            return False
-
-
-class SerializableMixin:
-    def to_json(self):
-        return json.dumps({
-            "class": self.__class__.__name__,
-            "data": self.__dict__
-        }, ensure_ascii=False)
-
-
 class LoggableMixin:
+    """Миксин для добавления функциональности логирования"""
     def log(self, message):
         class_name = self.__class__.__name__
-        print(f"{class_name}: {message}")
+        print(f"[{class_name}] {message}")
+
+class SerializableMixin:
+    """Миксин для добавления функциональности сериализации в JSON"""
+    def to_dict(self):
+        # Возвращает словарь атрибутов объекта
+        return self.__dict__
+
+    def to_json(self):
+        # Сериализует объект в JSON строку
+        return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
