@@ -6,6 +6,7 @@ class LoggableMixin:
         class_name = self.__class__.__name__
         print(f"[{class_name}] {message}")
 
+
 class SerializableMixin:
     """Миксин для добавления функциональности сериализации в JSON"""
     def to_dict(self):
