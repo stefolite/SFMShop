@@ -1,59 +1,66 @@
-# Файл src/database/queries.py
 import time
-from src.database.connection import get_connection
 
-def measure_index_performance(conn):
-    with conn:
-        with conn.cursor() as cur:
-            # Тест 1: Поиск товара по названию
-            print("Тест 1: Поиск товара по названию")
 
-            # Без индекса
-            start_time = time.perf_counter()
-            cur.execute("SELECT * FROM products WHERE name = %s", ("Ноутбук",))
-            result = cur.fetchone()
-            time_without_index = time.perf_counter() - start_time
+DB_PRODUCTS = [
+    {"id": 1, "name": "Клавиатура", "price": 2500},
+    {"id": 2, "name": "Мышь", "price": 1200},
+]
+db_calls = 0
 
-            # Создание индекса
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)")
-            conn.commit()
 
-            # С индексом
-            start_time = time.perf_counter()
-            cur.execute("SELECT * FROM products WHERE name = %s", ("Ноутбук",))
-            result = cur.fetchone()
-            time_with_index = time.perf_counter() - start_time
+def get_all_products_from_db():
+    global db_calls
+    db_calls += 1
+    return DB_PRODUCTS
 
-            print(f"  Без индекса: {time_without_index:.6f} сек")
-            print(f"  С индексом: {time_with_index:.6f} сек")
-            if time_with_index > 0:
-                speedup = time_without_index / time_with_index
-                print(f"  Ускорение: {speedup:.2f}x")
 
-            # Тест 2: Поиск заказов по пользователю
-            print("\nТест 2: Поиск заказов по пользователю")
+class SimpleCache:
+    """Учебная модель Redis: key-value хранилище в памяти с TTL."""
 
-            # Без индекса
-            start_time = time.perf_counter()
-            cur.execute("SELECT * FROM orders WHERE user_id = %s", (1,))
-            results = cur.fetchall()
-            time_without_index = time.perf_counter() - start_time
+    def __init__(self):
+        self._store = {}  # key -> (value, expire_at)
 
-            # Создание индекса
-            cur.execute("CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id)")
-            conn.commit()
+    def setex(self, key, ttl_seconds, value):
+        self._store[key] = (value, time.monotonic() + ttl_seconds)
 
-            # С индексом
-            start_time = time.perf_counter()
-            cur.execute("SELECT * FROM orders WHERE user_id = %s", (1,))
-            results = cur.fetchall()
-            time_with_index = time.perf_counter() - start_time
+    def get(self, key):
+        value = self._store.get(key)
+        if value:
+            if time.monotonic() > value[1]:
+                self.delete(key)
+                return None
+        return value
 
-            print(f"  Без индекса: {time_without_index:.6f} сек")
-            print(f"  С индексом: {time_with_index:.6f} сек")
-            if time_with_index > 0:
-                speedup = time_without_index / time_with_index
-                print(f"  Ускорение: {speedup:.2f}x")
+    def delete(self, key):
+        if key in self._store:
+            del self._store[key]
+        return None
+
+
+cache = SimpleCache()
+
+
+def get_cached_products():
+    """Сначала кэш, при промахе — БД и запись в кэш."""
+    value = cache.get("products:all")
+    if value:
+        print("HIT")
+        return value[0]
+    cache.setex("products:all", 1, get_all_products_from_db())
+    print("MISS")
+    return cache.get("products:all")
+
+
+def invalidate_products_cache():
+    cache.delete("products:all")
+
 
 if __name__ == "__main__":
-    measure_index_performance()
+    get_cached_products()
+    get_cached_products()
+    invalidate_products_cache()
+    get_cached_products()
+    time.sleep(1.1)
+    products = get_cached_products()
+    print(f"Обращений к БД: {db_calls}")
+    print(f"Товаров: {len(products)}")

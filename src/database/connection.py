@@ -206,3 +206,25 @@ def get_connection():
 
 # if __name__ == "__main__":
 #     test_connection()
+
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Создание движка
+engine = create_engine(
+    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@"
+    f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+    )
+
+# Создание фабрики сессий
+SessionLocal = sessionmaker(bind=engine)
+
+
+def get_session():
+    """Получить сессию БД"""
+    return SessionLocal()
