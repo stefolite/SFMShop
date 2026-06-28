@@ -158,3 +158,73 @@ def update_product(conn, data, product_id):
                 return cursor.fetchone()
     except Error as e:
         print(f"Ошибка при изменении продукта: {e}")
+
+
+# Файл src/database/connection.py
+# import os
+# import psycopg2
+# from contextlib import contextmanager
+# from dotenv import load_dotenv
+
+# load_dotenv()
+
+# DB_CONFIG = {
+#     "host": os.getenv("DB_HOST", "localhost"),
+#     "port": int(os.getenv("DB_PORT", 5432)),
+#     "database": os.getenv("DB_NAME", "sfmshop"),
+#     "user": os.getenv("DB_USER", "postgres"),
+#     "password": os.getenv("DB_PASSWORD")
+# }
+
+@contextmanager
+def get_connection():
+    """Контекстный менеджер для подключения к БД"""
+    conn = None
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        yield conn
+        conn.commit()
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Ошибка БД: {e}")
+        raise
+    finally:
+        if conn:
+            conn.close()
+
+# def test_connection():
+#     """Проверить подключение к БД"""
+#     try:
+#         with get_connection() as conn:
+#             with conn.cursor() as cur:
+#                 cur.execute("SELECT version();")
+#                 version = cur.fetchone()
+#                 print(f"Подключение успешно! Версия: {version[0]}")
+#     except Exception as e:
+#         print(f"Ошибка подключения: {e}")
+
+# if __name__ == "__main__":
+#     test_connection()
+
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Создание движка
+engine = create_engine(
+    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@"
+    f"{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+    )
+
+# Создание фабрики сессий
+SessionLocal = sessionmaker(bind=engine)
+
+
+def get_session():
+    """Получить сессию БД"""
+    return SessionLocal()
