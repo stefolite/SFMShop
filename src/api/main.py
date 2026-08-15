@@ -1,19 +1,19 @@
 from fastapi import FastAPI, status
 from pydantic import BaseModel
 from fastapi import HTTPException
-from src.database.connection import (
-    connect_to_db,
-    get_all_products,
-    get_product_by_id,
-    create_order as create_order_service,
-    delete_product as delete_product_service,
-    get_user_by_id,
-    create_user as create_user_service,
-    get_users as get_users_service,
-    add_product,
-    update_product as update_product_service
-)
-from contextlib import asynccontextmanager
+# from src.database.connection import (
+#     connect_to_db,
+#     get_all_products,
+#     get_product_by_id,
+#     create_order as create_order_service,
+#     delete_product as delete_product_service,
+#     get_user_by_id,
+#     create_user as create_user_service,
+#     get_users as get_users_service,
+#     add_product,
+#     update_product as update_product_service
+# )
+from contextlib import asynccontextmanager, contextmanager
 from decimal import Decimal
 from src.models.product import Product
 from src.models.user import User
@@ -21,21 +21,21 @@ from src.models.order import Order
 from fastapi.testclient import TestClient
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global conn
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     global conn
 
-    # startup
-    conn = connect_to_db()
+#     # startup
+#     conn = connect_to_db()
 
-    yield
+#     yield
 
-    # shutdown
-    if conn:
-        conn.close()
+#     # shutdown
+#     if conn:
+#         conn.close()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
 class ProductCreate(BaseModel):

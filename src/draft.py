@@ -1,6 +1,14 @@
-from time import perf_counter, sleep
+import multiprocessing
 
 
-print(perf_counter())
-sleep(2)
-print(perf_counter())
+def worker(x):
+    print(f'worker {x} started working')
+    for _ in range(10**9):
+        continue
+    return True
+
+
+if __name__ == '__main__':
+    with multiprocessing.Pool() as pool:
+        pool.map(worker, [1, 2])
+        print('Done')
